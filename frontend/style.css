@@ -1,0 +1,832 @@
+/* =========================================================
+   BHOOMIRAKSHAK - MINE MONITORING DASHBOARD
+   Main stylesheet
+   ========================================================= */
+
+
+/* ================= RESET ================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ================= BODY ================= */
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #cdeffa;
+    color: #111827;
+    line-height: 1.5;
+}
+
+
+/* ================= HEADER ================= */
+
+header {
+    background: #35424f;
+    color: white;
+
+    padding: 20px 35px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+}
+
+
+.brand h1 {
+    font-size: 28px;
+    margin-bottom: 3px;
+}
+
+
+.brand span {
+    font-size: 14px;
+    color: #dbe5ec;
+}
+
+
+.system-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 14px;
+}
+
+
+/* ================= CONNECTION STATUS ================= */
+
+.status-online {
+    color: #22c55e;
+    font-weight: bold;
+}
+
+
+.status-offline {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+
+/* ================= NAVIGATION ================= */
+
+nav {
+    background: #318bd1;
+
+    padding: 13px 35px;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+
+nav a {
+    color: white;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: 0.2s;
+}
+
+
+nav a:hover {
+    color: #07111a;
+}
+
+
+/* ================= MAIN ================= */
+
+main {
+    width: 100%;
+    max-width: 1400px;
+
+    margin: auto;
+
+    padding: 30px;
+}
+
+
+/* ================= TITLE ================= */
+
+.title {
+    margin-bottom: 25px;
+}
+
+
+.title h2 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+
+.title p {
+    color: #173b5e;
+    font-size: 15px;
+}
+
+
+/* ================= STATUS BAR ================= */
+
+.status-bar {
+    background: white;
+
+    padding: 18px 20px;
+
+    border-radius: 12px;
+
+    margin-bottom: 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+
+.status-item strong {
+    font-size: 13px;
+    color: #475569;
+}
+
+
+.status-item span {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+
+/* ================= BUTTON ================= */
+
+button {
+    background: #078ee5;
+    color: white;
+
+    border: none;
+
+    padding: 11px 18px;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: 0.2s;
+}
+
+
+button:hover {
+    background: #1263a0;
+}
+
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ================= SENSOR CARDS ================= */
+
+.cards {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+}
+
+
+.card {
+    background: white;
+
+    padding: 22px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+.card-icon {
+    font-size: 25px;
+
+    margin-bottom: 8px;
+}
+
+
+.card h3 {
+    font-size: 14px;
+
+    color: #334155;
+
+    margin-bottom: 10px;
+
+    letter-spacing: 0.4px;
+}
+
+
+.value {
+    display: inline-block;
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    color: #111827;
+}
+
+
+.unit {
+    font-size: 17px;
+
+    color: #64748b;
+
+    margin-left: 4px;
+}
+
+
+/* ================= CARD STATUS ================= */
+
+.card-status {
+    margin-top: 12px;
+
+    display: inline-block;
+
+    padding: 4px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+.normal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+
+.warning-status {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+
+.danger-status {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+
+/* ================= DASHBOARD GRID ================= */
+
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns: 2fr 1fr;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+
+/* ================= PANEL ================= */
+
+.panel {
+    background: white;
+
+    padding: 22px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+
+.panel h2 {
+    font-size: 20px;
+
+    margin-bottom: 5px;
+}
+
+
+.panel-description {
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* ================= PANEL HEADER ================= */
+
+.panel-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+
+.live-indicator {
+    color: #16a34a;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+/* ================= TABLE ================= */
+
+.table-container {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 600px;
+}
+
+
+th,
+td {
+    padding: 12px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    text-align: left;
+
+    font-size: 13px;
+}
+
+
+th {
+    background: #f8fafc;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+}
+
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+/* ================= TABLE STATUS ================= */
+
+.table-status {
+    display: inline-block;
+
+    padding: 4px 9px;
+
+    border-radius: 15px;
+
+    font-size: 11px;
+
+    font-weight: bold;
+}
+
+
+.safe {
+    background: #dcfce7;
+
+    color: #166534;
+}
+
+
+.warning {
+    background: #fef3c7;
+
+    color: #92400e;
+}
+
+
+.danger {
+    background: #fee2e2;
+
+    color: #991b1b;
+}
+
+
+/* ================= RISK PANEL ================= */
+
+.risk {
+    text-align: center;
+
+    padding: 25px 15px;
+
+    border-radius: 12px;
+
+    border: 1px solid;
+}
+
+
+.risk-icon {
+    font-size: 32px;
+
+    margin-bottom: 5px;
+}
+
+
+.risk h1 {
+    font-size: 30px;
+
+    margin-bottom: 5px;
+}
+
+
+.risk p {
+    font-size: 13px;
+}
+
+
+/* LOW */
+
+.risk-low {
+    background: #ecfdf5;
+
+    border-color: #86efac;
+
+    color: #166534;
+}
+
+
+/* MEDIUM */
+
+.risk-medium {
+    background: #fffbeb;
+
+    border-color: #fcd34d;
+
+    color: #92400e;
+}
+
+
+/* HIGH */
+
+.risk-high {
+    background: #fef2f2;
+
+    border-color: #fca5a5;
+
+    color: #991b1b;
+}
+
+
+/* ================= ALERT ================= */
+
+.alert {
+    margin-top: 18px;
+
+    background: #eff6ff;
+
+    border-left: 5px solid #3b82f6;
+
+    padding: 14px;
+
+    border-radius: 6px;
+}
+
+
+.alert strong {
+    display: block;
+
+    color: #1d4ed8;
+
+    margin-bottom: 5px;
+}
+
+
+.alert p {
+    font-size: 13px;
+
+    color: #334155;
+}
+
+
+/* ================= AI PREDICTION ================= */
+
+.prediction-panel {
+    margin-bottom: 20px;
+}
+
+
+.ai-badge {
+    background: #e0f2fe;
+
+    color: #0369a1;
+
+    padding: 6px 10px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+.prediction-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+
+.prediction-item {
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 9px;
+
+    padding: 15px;
+}
+
+
+.prediction-label {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    margin-bottom: 5px;
+}
+
+
+.prediction-item strong {
+    font-size: 16px;
+}
+
+
+.prediction-stable {
+    color: #15803d;
+}
+
+
+/* ================= INFORMATION CARDS ================= */
+
+.info-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+
+.info-card {
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+
+.info-card h3 {
+    font-size: 16px;
+
+    margin-bottom: 8px;
+}
+
+
+.info-card p {
+    color: #64748b;
+
+    font-size: 13px;
+
+    margin-bottom: 12px;
+}
+
+
+.info-status {
+    color: #16a34a;
+
+    font-size: 12px;
+
+    font-weight: bold;
+}
+
+
+.offline-text {
+    color: #dc2626;
+}
+
+
+/* ================= REPORT / SUMMARY ================= */
+
+.reports-panel {
+    margin-bottom: 20px;
+}
+
+
+.summary-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 15px;
+
+    margin-top: 15px;
+}
+
+
+.summary-grid div {
+    background: #f8fafc;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    border: 1px solid #e2e8f0;
+}
+
+
+.summary-grid span {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    margin-bottom: 5px;
+}
+
+
+.summary-grid strong {
+    font-size: 17px;
+}
+
+
+/* ================= FOOTER ================= */
+
+footer {
+    background: #17202a;
+
+    color: white;
+
+    text-align: center;
+
+    padding: 18px;
+
+    font-size: 12px;
+
+    line-height: 1.7;
+}
+
+
+/* ================= RESPONSIVE - TABLET ================= */
+
+@media (max-width: 1000px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .prediction-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    .status-bar {
+        flex-wrap: wrap;
+    }
+
+}
+
+
+/* ================= RESPONSIVE - MOBILE ================= */
+
+@media (max-width: 600px) {
+
+    header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        padding: 18px 20px;
+    }
+
+
+    .brand h1 {
+        font-size: 23px;
+    }
+
+
+    nav {
+        padding: 12px 20px;
+
+        gap: 15px;
+    }
+
+
+    main {
+        padding: 20px 15px;
+    }
+
+
+    .title h2 {
+        font-size: 23px;
+    }
+
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+
+    .status-bar {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    button {
+        width: 100%;
+    }
+
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .panel {
+        padding: 17px;
+    }
+
+}

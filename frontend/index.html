@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BhoomiRakshak - Mine Monitoring System</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header>
+
+        <div class="brand">
+            <h1>⛏ BhoomiRakshak</h1>
+            <span>AI-enabled Mine Subsidence Monitoring System</span>
+        </div>
+
+        <div class="system-status">
+            <span>System Status:</span>
+            <span id="connectionStatus" class="status-offline">
+                ● OFFLINE
+            </span>
+        </div>
+
+    </header>
+
+
+    <!-- ================= NAVIGATION ================= -->
+    <nav>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#monitoring">Monitoring</a>
+        <a href="#prediction">Prediction</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#reports">Reports</a>
+    </nav>
+
+
+    <!-- ================= MAIN ================= -->
+    <main id="dashboard">
+
+        <!-- PAGE TITLE -->
+        <section class="title">
+            <h2>Mine Monitoring Dashboard</h2>
+
+            <p>
+                Real-time monitoring of underground mine ground conditions
+            </p>
+        </section>
+
+
+        <!-- ================= NODE STATUS ================= -->
+        <section class="status-bar">
+
+            <div class="status-item">
+                <strong>Monitoring Area</strong>
+                <span>Underground Coal Mine - Zone A</span>
+            </div>
+
+            <div class="status-item">
+                <strong>Active Nodes</strong>
+                <span id="activeNodes">1 / 1</span>
+            </div>
+
+            <div class="status-item">
+                <strong>Last Updated</strong>
+                <span id="lastUpdated">--:--:--</span>
+            </div>
+
+            <button id="refreshButton" onclick="refreshData()">
+                Refresh Data
+            </button>
+
+        </section>
+
+
+        <!-- ================= SENSOR CARDS ================= -->
+        <section class="cards" id="monitoring">
+
+            <!-- DISPLACEMENT -->
+            <div class="card">
+
+                <div class="card-icon">↕</div>
+
+                <h3>GROUND DISPLACEMENT</h3>
+
+                <div class="value" id="displacement">
+                    2.4
+                </div>
+
+                <span class="unit">
+                    mm
+                </span>
+
+                <div class="card-status normal" id="displacementStatus">
+                    Normal
+                </div>
+
+            </div>
+
+
+            <!-- VIBRATION -->
+            <div class="card">
+
+                <div class="card-icon">〰</div>
+
+                <h3>VIBRATION</h3>
+
+                <div class="value" id="vibration">
+                    0.18
+                </div>
+
+                <span class="unit">
+                    g
+                </span>
+
+                <div class="card-status normal" id="vibrationStatus">
+                    Normal
+                </div>
+
+            </div>
+
+
+            <!-- TILT -->
+            <div class="card">
+
+                <div class="card-icon">⌁</div>
+
+                <h3>TILT ANGLE</h3>
+
+                <div class="value" id="tilt">
+                    1.8
+                </div>
+
+                <span class="unit">
+                    °
+                </span>
+
+                <div class="card-status normal" id="tiltStatus">
+                    Normal
+                </div>
+
+            </div>
+
+
+            <!-- MOISTURE -->
+            <div class="card">
+
+                <div class="card-icon">💧</div>
+
+                <h3>MOISTURE</h3>
+
+                <div class="value" id="moisture">
+                    42
+                </div>
+
+                <span class="unit">
+                    %
+                </span>
+
+                <div class="card-status normal" id="moistureStatus">
+                    Normal
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= MAIN DASHBOARD GRID ================= -->
+        <section class="dashboard-grid">
+
+
+            <!-- ================= SENSOR READINGS ================= -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>📊 Recent Sensor Readings</h2>
+
+                        <p class="panel-description">
+                            Latest data received from monitoring node
+                        </p>
+                    </div>
+
+                    <span class="live-indicator">
+                        ● LIVE
+                    </span>
+
+                </div>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Time</th>
+                                <th>Node</th>
+                                <th>Displacement</th>
+                                <th>Vibration</th>
+                                <th>Tilt</th>
+                                <th>Status</th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="readingsTable">
+
+                            <tr>
+
+                                <td>--:--:--</td>
+
+                                <td>
+                                    Node 01
+                                </td>
+
+                                <td>
+                                    2.4 mm
+                                </td>
+
+                                <td>
+                                    0.18 g
+                                </td>
+
+                                <td>
+                                    1.8°
+                                </td>
+
+                                <td>
+                                    <span class="table-status safe">
+                                        SAFE
+                                    </span>
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= RISK PANEL ================= -->
+            <div class="panel" id="alerts">
+
+                <h2>⚠ Risk Assessment</h2>
+
+                <div class="risk risk-low" id="riskBox">
+
+                    <div class="risk-icon">
+                        ✓
+                    </div>
+
+                    <h1 id="riskLevel">
+                        LOW
+                    </h1>
+
+                    <p id="riskMessage">
+                        Current ground condition is within monitored limits.
+                    </p>
+
+                </div>
+
+
+                <!-- ALERT -->
+                <div class="alert" id="alertBox">
+
+                    <strong id="alertTitle">
+                        AI Prediction
+                    </strong>
+
+                    <p id="alertMessage">
+                        No critical subsidence pattern detected at present.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= AI PREDICTION ================= -->
+        <section class="panel prediction-panel" id="prediction">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>🤖 AI Subsidence Prediction</h2>
+
+                    <p class="panel-description">
+                        Monitoring system analyses sensor readings to identify
+                        abnormal ground movement patterns.
+                    </p>
+                </div>
+
+                <div class="ai-badge">
+                    AI MONITORING
+                </div>
+
+            </div>
+
+
+            <div class="prediction-grid">
+
+                <div class="prediction-item">
+
+                    <span class="prediction-label">
+                        Prediction Status
+                    </span>
+
+                    <strong id="predictionStatus" class="prediction-stable">
+                        Stable
+                    </strong>
+
+                </div>
+
+
+                <div class="prediction-item">
+
+                    <span class="prediction-label">
+                        Predicted Ground Movement
+                    </span>
+
+                    <strong id="predictionMovement">
+                        Low probability
+                    </strong>
+
+                </div>
+
+
+                <div class="prediction-item">
+
+                    <span class="prediction-label">
+                        Monitoring Node
+                    </span>
+
+                    <strong>
+                        Node 01
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= SYSTEM INFORMATION ================= -->
+        <section class="info-grid">
+
+            <div class="info-card">
+
+                <h3>📡 Sensor Node</h3>
+
+                <p>
+                    Node 01 is responsible for collecting real-time
+                    ground-condition data.
+                </p>
+
+                <span class="info-status">
+                    ● Active
+                </span>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>📶 LoRa Communication</h3>
+
+                <p>
+                    Sensor data is transmitted from the monitoring node
+                    to the receiver through LoRa communication.
+                </p>
+
+                <span class="info-status">
+                    ● Monitoring
+                </span>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>🖥 Backend</h3>
+
+                <p>
+                    Flask API receives and provides the latest sensor
+                    information to this dashboard.
+                </p>
+
+                <span id="backendStatus" class="info-status offline-text">
+                    ● Checking...
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= REPORT SECTION ================= -->
+        <section class="panel reports-panel" id="reports">
+
+            <h2>📋 System Summary</h2>
+
+            <div class="summary-grid">
+
+                <div>
+                    <span>Current Risk</span>
+                    <strong id="summaryRisk">
+                        LOW
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Active Nodes</span>
+                    <strong>
+                        1
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Update Interval</span>
+                    <strong>
+                        5 sec
+                    </strong>
+                </div>
+
+                <div>
+                    <span>System</span>
+                    <strong id="summaryConnection">
+                        Offline
+                    </strong>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+    <footer>
+
+        <p>
+            SIH26025 | AI-enabled Low Cost Real Time Mine
+            Subsidence Monitoring & Early Warning System
+        </p>
+
+        <p>
+            BhoomiRakshak © 2026
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="script.js"></script>
+
+</body>
+</html>
