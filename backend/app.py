@@ -1,7 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from datetime import datetime
 import random
+import os
+
+FRONTEND_FOLDER = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "frontend")
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -110,13 +115,12 @@ def get_sensor_response():
 
 @app.route("/", methods=["GET"])
 def home():
+    return send_from_directory(FRONTEND_FOLDER, "index.html")
 
-    return jsonify({
-        "success": True,
-        "message": "Mine Security AI Monitoring Backend is Running",
-        "status": "online",
-        "time": get_current_time()
-    })
+
+@app.route("/<path:filename>")
+def frontend_files(filename):
+    return send_from_directory(FRONTEND_FOLDER, filename)
 
 
 # =========================================================
@@ -241,12 +245,12 @@ if __name__ == "__main__":
     print(" Mine Security AI Backend")
     print(" AI Mine Subsidence Monitoring System")
     print("--------------------------------------------")
-    print("Server: http://127.0.0.1:5000")
-    print("API:    http://127.0.0.1:5000/api/sensors")
+    print("Server: http://192.168.0.102:5000")
+    print("API:    http://192.168.0.102:5000/api/sensors")
     print("--------------------------------------------")
 
     app.run(
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=5000,
         debug=True
     )
