@@ -1,5 +1,5 @@
 /* =========================================================
-   BHOOMIRAKSHAK - FRONTEND JAVASCRIPT
+   Mine Security AI - FRONTEND JAVASCRIPT
 
    This file:
    1. Gets data from Flask
