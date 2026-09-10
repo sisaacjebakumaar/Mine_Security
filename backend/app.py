@@ -113,7 +113,7 @@ def home():
 
     return jsonify({
         "success": True,
-        "message": "BhoomiRakshak AI Mine Monitoring Backend is Running",
+        "message": "Mine Security AI Monitoring Backend is Running",
         "status": "online",
         "time": get_current_time()
     })
@@ -238,7 +238,7 @@ def reset_sensors():
 if __name__ == "__main__":
 
     print("--------------------------------------------")
-    print(" BhoomiRakshak Backend")
+    print(" Mine Security AI Backend")
     print(" AI Mine Subsidence Monitoring System")
     print("--------------------------------------------")
     print("Server: http://127.0.0.1:5000")
