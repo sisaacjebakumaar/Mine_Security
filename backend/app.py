@@ -875,62 +875,17 @@ def health():
 # =========================================================
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
 
-    print(
-        "--------------------------------------------"
-    )
-
-    print(
-        " Mine Security AI Backend"
-    )
-
-    print(
-        " AI Mine Subsidence Monitoring System"
-    )
-
-    print(
-        "--------------------------------------------"
-    )
-
-    print(
-        "Server: http://192.168.0.106:5000"
-    )
-
-    print(
-        "API:    http://192.168.0.106:5000/api/sensors"
-    )
-
-    print(
-        "Buzzer: http://192.168.0.106:5000/api/buzzer"
-    )
-
-    print(
-        "--------------------------------------------"
-    )
-
-    print(
-        "WARNING:"
-    )
-
-    print(
-        "Thresholds are prototype/demo values only."
-    )
-
-    print(
-        "They are NOT certified mine-safety limits."
-    )
-
-    print(
-        "--------------------------------------------"
-    )
-
+    print("--------------------------------------------")
+    print(" Mine Security AI Backend")
+    print(" AI Mine Subsidence Monitoring System")
+    print("--------------------------------------------")
+    print(f"Server running on port: {port}")
+    print("--------------------------------------------")
 
     app.run(
-
         host="0.0.0.0",
-
-        port=5000,
-
+        port=port,
         debug=True
-
     )
