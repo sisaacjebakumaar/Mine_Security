@@ -1,34 +1,29 @@
 /* =========================================================
-   Mine Security AI - FRONTEND JAVASCRIPT
-
-   This file:
-   1. Gets data from Flask
-   2. Updates sensor cards
-   3. Updates risk
-   4. Updates connection status
-   5. Adds recent readings
+   MINE SECURITY AI
+   FRONTEND JAVASCRIPT
    ========================================================= */
 
 
-/* ================= FLASK API URL ================= */
+/* =========================================================
+   API
+   ========================================================= */
 
 const API_URL = "/api/sensors";
+const BUZZER_API_URL = "/api/buzzer";
 
-
-/* ================= SETTINGS ================= */
-
-// Dashboard refresh interval
-// 5000 = 5 seconds
 const REFRESH_INTERVAL = 5000;
 
 
-/* ================= READING HISTORY ================= */
+/* =========================================================
+   GLOBAL DATA
+   ========================================================= */
 
-// Stores recent dashboard readings
 let recentReadings = [];
 
 
-/* ================= GET ELEMENT ================= */
+/* =========================================================
+   GET ELEMENT
+   ========================================================= */
 
 function getElement(id) {
 
@@ -37,304 +32,117 @@ function getElement(id) {
 }
 
 
-/* ================= UPDATE CONNECTION ================= */
+/* =========================================================
+   CONNECTION STATUS
+   ========================================================= */
 
-function updateConnectionStatus(online) {
+function updateConnectionStatus(connected) {
 
-    const status = getElement("connectionStatus");
-    const backendStatus = getElement("backendStatus");
-    const summaryConnection = getElement("summaryConnection");
+    const element =
+        getElement("connectionStatus");
 
-    if (online) {
+    if (element) {
 
-        status.innerText = "● ONLINE";
+        if (connected) {
 
-        status.className = "status-online";
+            element.innerText =
+                "● ONLINE";
 
-        backendStatus.innerText = "● Connected";
+            element.className =
+                "status-online";
 
-        backendStatus.className = "info-status";
+        }
+        else {
 
-        summaryConnection.innerText = "Online";
+            element.innerText =
+                "● OFFLINE";
 
-    } else {
-
-        status.innerText = "● OFFLINE";
-
-        status.className = "status-offline";
-
-        backendStatus.innerText = "● Disconnected";
-
-        backendStatus.className = "info-status offline-text";
-
-        summaryConnection.innerText = "Offline";
-
-    }
-
-}
-
-
-/* ================= UPDATE SENSOR STATUS ================= */
-
-function updateSensorStatus(id, value, warningLimit, dangerLimit) {
-
-    const element = getElement(id);
-
-    if (!element) {
-        return;
-    }
-
-
-    if (value >= dangerLimit) {
-
-        element.innerText = "High";
-
-        element.className = "card-status danger-status";
-
-    } else if (value >= warningLimit) {
-
-        element.innerText = "Warning";
-
-        element.className = "card-status warning-status";
-
-    } else {
-
-        element.innerText = "Normal";
-
-        element.className = "card-status normal";
-
-    }
-
-}
-
-
-/* ================= UPDATE RISK ================= */
-
-function updateRisk(risk) {
-
-    const riskLevel = getElement("riskLevel");
-    const riskBox = getElement("riskBox");
-    const riskMessage = getElement("riskMessage");
-
-    const summaryRisk = getElement("summaryRisk");
-
-    const alertTitle = getElement("alertTitle");
-    const alertMessage = getElement("alertMessage");
-
-    const predictionStatus = getElement("predictionStatus");
-    const predictionMovement = getElement("predictionMovement");
-
-
-    if (!risk) {
-        return;
-    }
-
-
-    // Convert to uppercase
-    risk = String(risk).toUpperCase();
-
-
-    /* ---------- LOW ---------- */
-
-    if (risk === "LOW" || risk === "SAFE") {
-
-        riskLevel.innerText = "LOW";
-
-        riskBox.className = "risk risk-low";
-
-        riskMessage.innerText =
-            "Current ground condition is within monitored limits.";
-
-        summaryRisk.innerText = "LOW";
-
-        summaryRisk.style.color = "#166534";
-
-        alertTitle.innerText = "AI Prediction";
-
-        alertMessage.innerText =
-            "No critical subsidence pattern detected at present.";
-
-        predictionStatus.innerText = "Stable";
-
-        predictionStatus.className = "prediction-stable";
-
-        predictionMovement.innerText = "Low probability";
-
-    }
-
-
-    /* ---------- MEDIUM ---------- */
-
-    else if (risk === "MEDIUM" || risk === "WARNING") {
-
-        riskLevel.innerText = "MEDIUM";
-
-        riskBox.className = "risk risk-medium";
-
-        riskMessage.innerText =
-            "Some monitored parameters require attention.";
-
-        summaryRisk.innerText = "MEDIUM";
-
-        summaryRisk.style.color = "#92400e";
-
-        alertTitle.innerText = "⚠ Warning";
-
-        alertMessage.innerText =
-            "Abnormal sensor conditions are being monitored.";
-
-        predictionStatus.innerText = "Monitor";
-
-        predictionStatus.className = "";
-
-        predictionMovement.innerText = "Moderate probability";
-
-    }
-
-
-    /* ---------- HIGH ---------- */
-
-    else if (risk === "HIGH" || risk === "DANGER") {
-
-        riskLevel.innerText = "HIGH";
-
-        riskBox.className = "risk risk-high";
-
-        riskMessage.innerText =
-            "Sensor readings indicate a high-risk condition.";
-
-        summaryRisk.innerText = "HIGH";
-
-        summaryRisk.style.color = "#991b1b";
-
-        alertTitle.innerText = "🚨 Alert";
-
-        alertMessage.innerText =
-            "High-risk sensor readings detected. Immediate monitoring is recommended.";
-
-        predictionStatus.innerText = "Attention Required";
-
-        predictionStatus.className = "";
-
-        predictionMovement.innerText = "High probability";
-
-    }
-
-}
-
-
-/* ================= ADD RECENT READING ================= */
-
-function addRecentReading(data, risk, time) {
-
-    const table = getElement("readingsTable");
-
-
-    // Create a new reading
-    const reading = {
-
-        time: time,
-
-        node: "Node 01",
-
-        displacement: data.displacement,
-
-        vibration: data.vibration,
-
-        tilt: data.tilt,
-
-        risk: risk
-
-    };
-
-
-    // Add latest reading at beginning
-    recentReadings.unshift(reading);
-
-
-    // Keep only 5 readings
-    if (recentReadings.length > 5) {
-
-        recentReadings.pop();
-
-    }
-
-
-    // Clear table
-    table.innerHTML = "";
-
-
-    // Create table rows
-    recentReadings.forEach(function (item) {
-
-        const row = document.createElement("tr");
-
-
-        let riskClass = "safe";
-
-        let riskText = "SAFE";
-
-
-        const currentRisk = String(item.risk).toUpperCase();
-
-
-        if (
-            currentRisk === "MEDIUM" ||
-            currentRisk === "WARNING"
-        ) {
-
-            riskClass = "warning";
-
-            riskText = "WARNING";
+            element.className =
+                "status-offline";
 
         }
 
-
-        if (
-            currentRisk === "HIGH" ||
-            currentRisk === "DANGER"
-        ) {
-
-            riskClass = "danger";
-
-            riskText = "HIGH";
-
-        }
+    }
 
 
-        row.innerHTML = `
+    const summary =
+        getElement("summaryConnection");
 
-            <td>${item.time}</td>
+    if (summary) {
 
-            <td>${item.node}</td>
+        summary.innerText =
+            connected ? "Online" : "Offline";
 
-            <td>${formatNumber(item.displacement)} mm</td>
-
-            <td>${formatNumber(item.vibration)} g</td>
-
-            <td>${formatNumber(item.tilt)}°</td>
-
-            <td>
-                <span class="table-status ${riskClass}">
-                    ${riskText}
-                </span>
-            </td>
-
-        `;
+    }
 
 
-        table.appendChild(row);
+    const backend =
+        getElement("backendStatus");
 
-    });
+    if (backend) {
+
+        backend.innerText =
+            connected
+                ? "● Connected"
+                : "● Offline";
+
+    }
 
 }
 
 
-/* ================= FORMAT NUMBER ================= */
+/* =========================================================
+   GET SENSOR VALUE
+   ========================================================= */
+
+function getSensorValue(data, keys) {
+
+    if (!data) {
+
+        return "--";
+
+    }
+
+
+    for (const key of keys) {
+
+        if (
+            data[key] !== undefined &&
+            data[key] !== null
+        ) {
+
+            return data[key];
+
+        }
+
+    }
+
+
+    return "--";
+
+}
+
+
+/* =========================================================
+   FORMAT NUMBER
+   ========================================================= */
 
 function formatNumber(value) {
 
-    const number = Number(value);
+    if (
+        value === undefined ||
+        value === null ||
+        value === "--" ||
+        value === ""
+    ) {
+
+        return "--";
+
+    }
+
+
+    const number =
+        Number(value);
 
 
     if (Number.isNaN(number)) {
@@ -349,176 +157,1306 @@ function formatNumber(value) {
 }
 
 
-/* ================= REFRESH DATA ================= */
+/* =========================================================
+   BACKEND SENSOR STATUS
+   ========================================================= */
 
-async function refreshData() {
+function applyBackendStatus(id, status) {
 
-    const refreshButton = getElement("refreshButton");
+    const element =
+        getElement(id);
 
 
-    try {
+    if (!element || !status) {
 
-        // Disable button during request
-        refreshButton.disabled = true;
+        return;
 
-        refreshButton.innerText = "Updating...";
+    }
 
 
-        // Request data from Flask
-        const response = await fetch(API_URL);
+    const normalized =
+        String(status).toUpperCase();
 
 
-        // Check HTTP response
-        if (!response.ok) {
+    if (
+        normalized === "HIGH" ||
+        normalized === "DANGER"
+    ) {
 
-            throw new Error(
-                "Flask server returned HTTP " + response.status
-            );
+        element.innerText =
+            "High";
 
-        }
+        element.className =
+            "card-status danger-status";
 
+    }
 
-        // Convert response to JSON
-        const result = await response.json();
+    else if (
+        normalized === "WARNING" ||
+        normalized === "MEDIUM"
+    ) {
 
+        element.innerText =
+            "Warning";
 
-        // Check returned data
-        if (!result.success) {
+        element.className =
+            "card-status warning-status";
 
-            throw new Error("Backend returned an error.");
+    }
 
-        }
+    else {
 
+        element.innerText =
+            "Normal";
 
-        const data = result.data;
-
-
-        /* ================= UPDATE SENSOR VALUES ================= */
-
-        getElement("displacement").innerText =
-            formatNumber(data.displacement);
-
-
-        getElement("vibration").innerText =
-            formatNumber(data.vibration);
-
-
-        getElement("tilt").innerText =
-            formatNumber(data.tilt);
-
-
-        getElement("moisture").innerText =
-            formatNumber(data.moisture);
-
-
-        /* ================= UPDATE SENSOR STATUS ================= */
-
-        updateSensorStatus(
-            "displacementStatus",
-            Number(data.displacement),
-            2.0,
-            3.0
-        );
-
-
-        updateSensorStatus(
-            "vibrationStatus",
-            Number(data.vibration),
-            0.20,
-            0.25
-        );
-
-
-        updateSensorStatus(
-            "tiltStatus",
-            Number(data.tilt),
-            2.0,
-            3.0
-        );
-
-
-        updateSensorStatus(
-            "moistureStatus",
-            Number(data.moisture),
-            60,
-            80
-        );
-
-
-        /* ================= UPDATE RISK ================= */
-
-        updateRisk(result.risk);
-
-
-        /* ================= UPDATE TIME ================= */
-
-        let currentTime = result.time;
-
-
-        if (!currentTime) {
-
-            const now = new Date();
-
-            currentTime = now.toLocaleTimeString();
-
-        }
-
-
-        getElement("lastUpdated").innerText =
-            currentTime;
-
-
-        /* ================= ADD READING ================= */
-
-        addRecentReading(
-            data,
-            result.risk,
-            currentTime
-        );
-
-
-        /* ================= CONNECTION ================= */
-
-        updateConnectionStatus(true);
-
-
-        console.log(
-            "Sensor data updated successfully:",
-            result
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Backend connection error:",
-            error
-        );
-
-
-        updateConnectionStatus(false);
-
-    } finally {
-
-        // Enable button
-        refreshButton.disabled = false;
-
-        refreshButton.innerText = "Refresh Data";
+        element.className =
+            "card-status normal";
 
     }
 
 }
 
 
-/* ================= START DASHBOARD ================= */
+/* =========================================================
+   FRONTEND FALLBACK STATUS
+   ========================================================= */
+
+function updateSensorStatus(
+    id,
+    value,
+    warning,
+    danger
+) {
+
+    const element =
+        getElement(id);
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    const number =
+        Number(value);
+
+
+    if (Number.isNaN(number)) {
+
+        element.innerText =
+            "Normal";
+
+        element.className =
+            "card-status normal";
+
+        return;
+
+    }
+
+
+    if (number >= danger) {
+
+        element.innerText =
+            "High";
+
+        element.className =
+            "card-status danger-status";
+
+    }
+
+    else if (number >= warning) {
+
+        element.innerText =
+            "Warning";
+
+        element.className =
+            "card-status warning-status";
+
+    }
+
+    else {
+
+        element.innerText =
+            "Normal";
+
+        element.className =
+            "card-status normal";
+
+    }
+
+}
+
+
+/* =========================================================
+   ULTRASONIC STATUS
+   LOWER DISTANCE = HIGHER RISK
+   ========================================================= */
+
+function updateDistanceStatus(
+    id,
+    value,
+    warning,
+    danger
+) {
+
+    const element =
+        getElement(id);
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    const number =
+        Number(value);
+
+
+    if (Number.isNaN(number)) {
+
+        element.innerText =
+            "Normal";
+
+        element.className =
+            "card-status normal";
+
+        return;
+
+    }
+
+
+    if (number <= danger) {
+
+        element.innerText =
+            "High";
+
+        element.className =
+            "card-status danger-status";
+
+    }
+
+    else if (number <= warning) {
+
+        element.innerText =
+            "Warning";
+
+        element.className =
+            "card-status warning-status";
+
+    }
+
+    else {
+
+        element.innerText =
+            "Normal";
+
+        element.className =
+            "card-status normal";
+
+    }
+
+}
+
+
+/* =========================================================
+   UPDATE SENSOR CARDS
+   ========================================================= */
+
+function updateSensorCards(
+    data,
+    statuses = {}
+) {
+
+    console.log(
+        "Updating sensor cards:",
+        data
+    );
+
+
+    /* =====================================================
+       SOIL
+       ===================================================== */
+
+    const soil =
+        getSensorValue(
+            data,
+            [
+                "soil",
+                "soil_moisture",
+                "moisture"
+            ]
+        );
+
+
+    const soilElement =
+        getElement("soil");
+
+
+    if (soilElement) {
+
+        soilElement.innerText =
+            formatNumber(soil);
+
+    }
+
+
+    if (statuses.soil) {
+
+        applyBackendStatus(
+            "soilStatus",
+            statuses.soil
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "soilStatus",
+            soil,
+            60,
+            80
+        );
+
+    }
+
+
+    /* =====================================================
+       TILT
+       ===================================================== */
+
+    const tilt =
+        getSensorValue(
+            data,
+            [
+                "tilt",
+                "mpu6050",
+                "tilt_angle",
+                "angle"
+            ]
+        );
+
+
+    const tiltElement =
+        getElement("tilt");
+
+
+    if (tiltElement) {
+
+        tiltElement.innerText =
+            formatNumber(tilt);
+
+    }
+
+
+    if (statuses.tilt) {
+
+        applyBackendStatus(
+            "tiltStatus",
+            statuses.tilt
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "tiltStatus",
+            tilt,
+            2.0,
+            3.0
+        );
+
+    }
+
+
+    /* =====================================================
+       ULTRASONIC
+       ===================================================== */
+
+    const ultrasonic =
+        getSensorValue(
+            data,
+            [
+                "ultrasonic",
+                "distance",
+                "ultrasonic_distance"
+            ]
+        );
+
+
+    const ultrasonicElement =
+        getElement("ultrasonic");
+
+
+    if (ultrasonicElement) {
+
+        ultrasonicElement.innerText =
+            formatNumber(ultrasonic);
+
+    }
+
+
+    if (statuses.ultrasonic) {
+
+        applyBackendStatus(
+            "ultrasonicStatus",
+            statuses.ultrasonic
+        );
+
+    }
+    else {
+
+        updateDistanceStatus(
+            "ultrasonicStatus",
+            ultrasonic,
+            30,
+            15
+        );
+
+    }
+
+
+    /* =====================================================
+       SMOKE
+       ===================================================== */
+
+    const smoke =
+        getSensorValue(
+            data,
+            [
+                "smoke",
+                "smoke_level",
+                "smoke_sensor",
+                "gas"
+            ]
+        );
+
+
+    const smokeElement =
+        getElement("smoke");
+
+
+    if (smokeElement) {
+
+        smokeElement.innerText =
+            formatNumber(smoke);
+
+    }
+
+
+    if (statuses.smoke) {
+
+        applyBackendStatus(
+            "smokeStatus",
+            statuses.smoke
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "smokeStatus",
+            smoke,
+            40,
+            70
+        );
+
+    }
+
+
+    /* =====================================================
+       VIBRATION
+       ===================================================== */
+
+    const vibration =
+        getSensorValue(
+            data,
+            [
+                "vibration",
+                "vibration_value"
+            ]
+        );
+
+
+    const vibrationElement =
+        getElement("vibration");
+
+
+    if (vibrationElement) {
+
+        vibrationElement.innerText =
+            formatNumber(vibration);
+
+    }
+
+
+    if (statuses.vibration) {
+
+        applyBackendStatus(
+            "vibrationStatus",
+            statuses.vibration
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "vibrationStatus",
+            vibration,
+            0.20,
+            0.25
+        );
+
+    }
+
+
+    /* =====================================================
+       LOAD
+       ===================================================== */
+
+    const load =
+        getSensorValue(
+            data,
+            [
+                "load",
+                "load_value",
+                "weight",
+                "load_weight"
+            ]
+        );
+
+
+    const loadElement =
+        getElement("load");
+
+
+    if (loadElement) {
+
+        loadElement.innerText =
+            formatNumber(load);
+
+    }
+
+
+    if (statuses.load) {
+
+        applyBackendStatus(
+            "loadStatus",
+            statuses.load
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "loadStatus",
+            load,
+            7,
+            9
+        );
+
+    }
+
+
+    /* =====================================================
+       GROUND DISPLACEMENT
+       ===================================================== */
+
+    const displacement =
+        getSensorValue(
+            data,
+            [
+                "displacement",
+                "ground_displacement"
+            ]
+        );
+
+
+    const displacementElement =
+        getElement("displacement");
+
+
+    if (displacementElement) {
+
+        displacementElement.innerText =
+            formatNumber(displacement);
+
+    }
+
+
+    if (statuses.displacement) {
+
+        applyBackendStatus(
+            "displacementStatus",
+            statuses.displacement
+        );
+
+    }
+    else {
+
+        updateSensorStatus(
+            "displacementStatus",
+            displacement,
+            2.0,
+            3.0
+        );
+
+    }
+
+
+    /* =====================================================
+       RETURN DATA
+       ===================================================== */
+
+    return {
+
+        soil: soil,
+
+        tilt: tilt,
+
+        ultrasonic: ultrasonic,
+
+        smoke: smoke,
+
+        vibration: vibration,
+
+        load: load,
+
+        displacement: displacement
+
+    };
+
+}
+
+
+/* =========================================================
+   UPDATE RISK
+   ========================================================= */
+
+function updateRisk(risk) {
+
+    const riskBox =
+        getElement("riskBox");
+
+    const riskLevel =
+        getElement("riskLevel");
+
+    const riskMessage =
+        getElement("riskMessage");
+
+    const summaryRisk =
+        getElement("summaryRisk");
+
+    const alertTitle =
+        getElement("alertTitle");
+
+    const alertMessage =
+        getElement("alertMessage");
+
+    const predictionStatus =
+        getElement("predictionStatus");
+
+    const predictionMovement =
+        getElement("predictionMovement");
+
+
+    const currentRisk =
+        String(
+            risk || "LOW"
+        ).toUpperCase();
+
+
+    if (currentRisk === "HIGH") {
+
+        if (riskLevel) {
+
+            riskLevel.innerText =
+                "HIGH";
+
+        }
+
+
+        if (riskBox) {
+
+            riskBox.className =
+                "risk risk-high";
+
+        }
+
+
+        if (riskMessage) {
+
+            riskMessage.innerText =
+                "Sensor readings indicate a high-risk condition.";
+
+        }
+
+
+        if (summaryRisk) {
+
+            summaryRisk.innerText =
+                "HIGH";
+
+        }
+
+
+        if (alertTitle) {
+
+            alertTitle.innerText =
+                "🚨 Alert";
+
+        }
+
+
+        if (alertMessage) {
+
+            alertMessage.innerText =
+                "High-risk sensor readings detected.";
+
+        }
+
+
+        if (predictionStatus) {
+
+            predictionStatus.innerText =
+                "Attention Required";
+
+        }
+
+
+        if (predictionMovement) {
+
+            predictionMovement.innerText =
+                "High probability";
+
+        }
+
+    }
+
+    else if (
+        currentRisk === "MEDIUM" ||
+        currentRisk === "WARNING"
+    ) {
+
+        if (riskLevel) {
+
+            riskLevel.innerText =
+                "MEDIUM";
+
+        }
+
+
+        if (riskBox) {
+
+            riskBox.className =
+                "risk risk-medium";
+
+        }
+
+
+        if (riskMessage) {
+
+            riskMessage.innerText =
+                "Abnormal sensor conditions are being monitored.";
+
+        }
+
+
+        if (summaryRisk) {
+
+            summaryRisk.innerText =
+                "MEDIUM";
+
+        }
+
+
+        if (alertTitle) {
+
+            alertTitle.innerText =
+                "⚠ Warning";
+
+        }
+
+
+        if (alertMessage) {
+
+            alertMessage.innerText =
+                "Abnormal sensor conditions are being monitored.";
+
+        }
+
+
+        if (predictionStatus) {
+
+            predictionStatus.innerText =
+                "Monitor";
+
+        }
+
+
+        if (predictionMovement) {
+
+            predictionMovement.innerText =
+                "Moderate probability";
+
+        }
+
+    }
+
+    else {
+
+        if (riskLevel) {
+
+            riskLevel.innerText =
+                "LOW";
+
+        }
+
+
+        if (riskBox) {
+
+            riskBox.className =
+                "risk risk-low";
+
+        }
+
+
+        if (riskMessage) {
+
+            riskMessage.innerText =
+                "Current ground condition is within monitored limits.";
+
+        }
+
+
+        if (summaryRisk) {
+
+            summaryRisk.innerText =
+                "LOW";
+
+        }
+
+
+        if (alertTitle) {
+
+            alertTitle.innerText =
+                "AI Prediction";
+
+        }
+
+
+        if (alertMessage) {
+
+            alertMessage.innerText =
+                "No critical subsidence pattern detected at present.";
+
+        }
+
+
+        if (predictionStatus) {
+
+            predictionStatus.innerText =
+                "Stable";
+
+        }
+
+
+        if (predictionMovement) {
+
+            predictionMovement.innerText =
+                "Low probability";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   UPDATE BUZZER
+   ========================================================= */
+
+function updateBuzzerUI(state) {
+
+    const element =
+        getElement("buzzerStatus");
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    const normalized =
+        String(
+            state || "OFF"
+        ).toUpperCase();
+
+
+    element.innerText =
+        normalized;
+
+
+    if (normalized === "ON") {
+
+        element.className =
+            "buzzer-on";
+
+    }
+    else {
+
+        element.className =
+            "buzzer-off";
+
+    }
+
+}
+
+
+/* =========================================================
+   BUZZER CONTROL
+   ========================================================= */
+
+async function setBuzzer(state) {
+
+    try {
+
+        const response =
+            await fetch(
+                BUZZER_API_URL,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            state: state
+                        })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.message ||
+                "Buzzer request failed"
+            );
+
+        }
+
+
+        updateBuzzerUI(
+            result.buzzer
+        );
+
+
+        console.log(
+            "Buzzer:",
+            result
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Buzzer error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RECENT SENSOR READING
+   ========================================================= */
+
+function addRecentReading(
+    data,
+    risk,
+    time
+) {
+
+    const table =
+        getElement(
+            "readingsTable"
+        );
+
+
+    if (!table) {
+
+        return;
+
+    }
+
+
+    const reading = {
+
+        time:
+            time ||
+            new Date().toLocaleTimeString(),
+
+        displacement:
+            data.displacement,
+
+        vibration:
+            data.vibration,
+
+        tilt:
+            data.tilt,
+
+        risk:
+            risk || "LOW"
+
+    };
+
+
+    recentReadings.unshift(
+        reading
+    );
+
+
+    if (
+        recentReadings.length > 5
+    ) {
+
+        recentReadings.pop();
+
+    }
+
+
+    table.innerHTML =
+        "";
+
+
+    recentReadings.forEach(
+        function (item) {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            let riskClass =
+                "safe";
+
+            let riskText =
+                "SAFE";
+
+
+            const currentRisk =
+                String(
+                    item.risk
+                ).toUpperCase();
+
+
+            if (
+                currentRisk === "MEDIUM" ||
+                currentRisk === "WARNING"
+            ) {
+
+                riskClass =
+                    "warning";
+
+                riskText =
+                    "WARNING";
+
+            }
+
+
+            if (
+                currentRisk === "HIGH" ||
+                currentRisk === "DANGER"
+            ) {
+
+                riskClass =
+                    "danger";
+
+                riskText =
+                    "HIGH";
+
+            }
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${item.time}
+                </td>
+
+                <td>
+                    Node 01
+                </td>
+
+                <td>
+                    ${formatNumber(item.displacement)} mm
+                </td>
+
+                <td>
+                    ${formatNumber(item.vibration)} g
+                </td>
+
+                <td>
+                    ${formatNumber(item.tilt)}°
+                </td>
+
+                <td>
+                    <span class="table-status ${riskClass}">
+                        ${riskText}
+                    </span>
+                </td>
+
+            `;
+
+
+            table.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   REFRESH DATA
+   ========================================================= */
+
+async function refreshData() {
+
+    const refreshButton =
+        getElement(
+            "refreshButton"
+        );
+
+
+    try {
+
+        console.log(
+            "Requesting sensor data..."
+        );
+
+
+        if (refreshButton) {
+
+            refreshButton.disabled =
+                true;
+
+            refreshButton.innerText =
+                "Updating...";
+
+        }
+
+
+        /* =====================================================
+           GET DATA FROM FLASK
+           ===================================================== */
+
+        const response =
+            await fetch(
+                API_URL,
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
+
+
+        console.log(
+            "API response:",
+            response.status
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
+        /* =====================================================
+           JSON
+           ===================================================== */
+
+        const result =
+            await response.json();
+
+
+        console.log(
+            "Backend JSON:",
+            result
+        );
+
+
+        if (
+            result.success !== true
+        ) {
+
+            throw new Error(
+                "Backend returned unsuccessful response"
+            );
+
+        }
+
+
+        /* =====================================================
+           SENSOR DATA
+           ===================================================== */
+
+        const data =
+            result.data || {};
+
+
+        /* =====================================================
+           UPDATE ALL 7 SENSOR CARDS
+           ===================================================== */
+
+        const sensorData =
+            updateSensorCards(
+                data,
+                result.statuses || {}
+            );
+
+
+        /* =====================================================
+           UPDATE RISK
+           ===================================================== */
+
+        updateRisk(
+            result.risk
+        );
+
+
+        /* =====================================================
+           UPDATE BUZZER
+           ===================================================== */
+
+        if (
+            result.buzzer !== undefined
+        ) {
+
+            updateBuzzerUI(
+                result.buzzer
+            );
+
+        }
+
+
+        /* =====================================================
+           LAST UPDATED
+           ===================================================== */
+
+        const lastUpdated =
+            getElement(
+                "lastUpdated"
+            );
+
+
+        if (lastUpdated) {
+
+            lastUpdated.innerText =
+                result.time ||
+                new Date().toLocaleTimeString();
+
+        }
+
+
+        /* =====================================================
+           RECENT READING
+           ===================================================== */
+
+        addRecentReading(
+            sensorData,
+            result.risk,
+            result.time
+        );
+
+
+        /* =====================================================
+           CONNECTION
+           ===================================================== */
+
+        updateConnectionStatus(
+            true
+        );
+
+
+        console.log(
+            "Dashboard updated successfully."
+        );
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "ERROR:",
+            error
+        );
+
+
+        updateConnectionStatus(
+            false
+        );
+
+    }
+
+
+    finally {
+
+        if (refreshButton) {
+
+            refreshButton.disabled =
+                false;
+
+            refreshButton.innerText =
+                "Refresh Data";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   START DASHBOARD
+   ========================================================= */
 
 function startDashboard() {
 
-    // Get initial data
+    console.log(
+        "Mine Security AI Dashboard started."
+    );
+
+
     refreshData();
 
 
-    // Automatically refresh every 5 seconds
     setInterval(
         refreshData,
         REFRESH_INTERVAL
@@ -527,9 +1465,15 @@ function startDashboard() {
 }
 
 
-/* ================= PAGE LOAD ================= */
+/* =========================================================
+   PAGE LOAD
+   ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    startDashboard
+    function () {
+
+        startDashboard();
+
+    }
 );
