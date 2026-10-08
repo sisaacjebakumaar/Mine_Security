@@ -1,113 +1,54 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from datetime import datetime
-import random
 import os
+import random
+from datetime import datetime
 
-
-# =========================================================
-# MINE SECURITY AI
-# BACKEND SERVER
-#
-# Sensors:
-# 1. Soil Moisture
-# 2. MPU6050 Tilt
-# 3. Ultrasonic Distance
-# 4. Smoke
-# 5. Vibration
-# 6. Load
-# 7. Ground Displacement
-#
-# Actuator:
-# - Buzzer
-# =========================================================
-
-
-# =========================================================
-# FRONTEND LOCATION
-# =========================================================
-
-FRONTEND_FOLDER = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "frontend"
-    )
+app = Flask(
+    __name__,
+    static_folder="../frontend",
+    static_url_path=""
 )
-
-
-# =========================================================
-# FLASK APP
-# =========================================================
-
-app = Flask(__name__)
 
 CORS(app)
 
-
-# =========================================================
+# ============================================================
 # SENSOR DATA
-#
-# These are demo values.
-# Later, replace them with actual ESP32/sensor values.
-# =========================================================
+# ============================================================
 
 sensor_data = {
-
-    "soil": 42.0,
-
-    "tilt": 1.8,
-
-    "ultrasonic": 45.0,
-
+    "soil": 45.0,
+    "tilt": 1.2,
+    "ultrasonic": 50.0,
     "smoke": 20.0,
-
-    "vibration": 0.18,
-
-    "load": 5.0,
-
-    "displacement": 2.4
-
+    "vibration": 0.0,
+    "load": 2.5,
+    "displacement": 0.5
 }
 
+# ============================================================
+# THRESHOLDS
+# ============================================================
 
-# =========================================================
-# BUZZER STATE
-#
-# Buzzer is an actuator, NOT a sensor.
-# =========================================================
-
-buzzer_state = "OFF"
-
-
-# =========================================================
-# SENSOR THRESHOLDS
-#
-# IMPORTANT:
-# These are prototype/demo thresholds only.
-# They are NOT certified mine-safety limits.
-# =========================================================
-
-THRESHOLDS = {
-
+thresholds = {
     "soil": {
-        "warning": 60.0,
-        "danger": 80.0
+        "warning": 60,
+        "danger": 80
     },
 
     "tilt": {
-        "warning": 2.0,
-        "danger": 3.0
+        "warning": 2,
+        "danger": 3
     },
 
     "ultrasonic": {
-        "warning": 30.0,
-        "danger": 15.0
+        "warning": 30,
+        "danger": 15
     },
 
     "smoke": {
-        "warning": 40.0,
-        "danger": 70.0
+        "warning": 40,
+        "danger": 70
     },
 
     "vibration": {
@@ -116,773 +57,436 @@ THRESHOLDS = {
     },
 
     "load": {
-        "warning": 7.0,
-        "danger": 9.0
+        "warning": 7,
+        "danger": 9
     },
 
     "displacement": {
-        "warning": 2.0,
-        "danger": 3.0
+        "warning": 2,
+        "danger": 3
     }
-
 }
 
+# ============================================================
+# BUZZER
+# ============================================================
 
-# =========================================================
-# GET CURRENT TIME
-# =========================================================
-
-def get_current_time():
-
-    return datetime.now().strftime(
-        "%H:%M:%S"
-    )
+# This represents the physical/automatic buzzer state.
+# IMPORTANT:
+# Buzzer is controlled ONLY by vibration.
+buzzer_state = "OFF"
 
 
-# =========================================================
-# GET SENSOR STATUS
-#
-# Returns:
-# NORMAL
-# WARNING
-# HIGH
-#
-# Ultrasonic is different:
-# smaller distance = higher risk
-# =========================================================
+# ============================================================
+# SENSOR STATUS FUNCTION
+# ============================================================
 
-def get_sensor_status(
-    sensor,
-    value
-):
+def get_sensor_status(sensor, value):
 
-    try:
-
-        value = float(value)
-
-    except (
-        ValueError,
-        TypeError
-    ):
-
-        return "UNKNOWN"
-
-
-    threshold = THRESHOLDS.get(
-        sensor
-    )
-
-
-    if not threshold:
-
-        return "UNKNOWN"
-
-
-    # -----------------------------------------------------
-    # ULTRASONIC
-    #
-    # Smaller distance is more dangerous.
-    # -----------------------------------------------------
-
-    if sensor == "ultrasonic":
-
-        if value <= threshold["danger"]:
-
-            return "HIGH"
-
-        elif value <= threshold["warning"]:
-
+    # Soil
+    if sensor == "soil":
+        if value >= thresholds["soil"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["soil"]["warning"]:
             return "WARNING"
-
         else:
-
             return "NORMAL"
 
+    # Tilt
+    elif sensor == "tilt":
+        if value >= thresholds["tilt"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["tilt"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-    # -----------------------------------------------------
-    # NORMAL SENSOR LOGIC
-    #
-    # Higher value = higher risk.
-    # -----------------------------------------------------
+    # Ultrasonic
+    # Smaller distance = more dangerous
+    elif sensor == "ultrasonic":
 
-    if value >= threshold["danger"]:
+        if value < 0:
+            return "UNKNOWN"
 
-        return "HIGH"
+        if value <= thresholds["ultrasonic"]["danger"]:
+            return "DANGER"
+        elif value <= thresholds["ultrasonic"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-    elif value >= threshold["warning"]:
+    # Smoke / gas
+    elif sensor == "smoke":
+        if value >= thresholds["smoke"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["smoke"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-        return "WARNING"
+    # Vibration
+    elif sensor == "vibration":
+        if value >= thresholds["vibration"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["vibration"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-    else:
+    # Load
+    elif sensor == "load":
+        if value >= thresholds["load"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["load"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-        return "NORMAL"
+    # Ground displacement
+    elif sensor == "displacement":
+        if value >= thresholds["displacement"]["danger"]:
+            return "DANGER"
+        elif value >= thresholds["displacement"]["warning"]:
+            return "WARNING"
+        else:
+            return "NORMAL"
 
-
-# =========================================================
-# GET STATUS OF ALL 7 SENSORS
-# =========================================================
-
-def get_all_statuses():
-
-    return {
-
-        "soil": get_sensor_status(
-            "soil",
-            sensor_data["soil"]
-        ),
-
-        "tilt": get_sensor_status(
-            "tilt",
-            sensor_data["tilt"]
-        ),
-
-        "ultrasonic": get_sensor_status(
-            "ultrasonic",
-            sensor_data["ultrasonic"]
-        ),
-
-        "smoke": get_sensor_status(
-            "smoke",
-            sensor_data["smoke"]
-        ),
-
-        "vibration": get_sensor_status(
-            "vibration",
-            sensor_data["vibration"]
-        ),
-
-        "load": get_sensor_status(
-            "load",
-            sensor_data["load"]
-        ),
-
-        "displacement": get_sensor_status(
-            "displacement",
-            sensor_data["displacement"]
-        )
-
-    }
+    return "UNKNOWN"
 
 
-# =========================================================
+# ============================================================
 # CALCULATE OVERALL RISK
-#
-# Prototype/demo risk scoring.
-#
-# Each sensor contributes:
-#
-# NORMAL  = 0
-# WARNING = 1
-# HIGH    = 3
-#
-# Overall:
-#
-# 0-1   = LOW
-# 2-5   = MEDIUM
-# 6+    = HIGH
-# =========================================================
+# ============================================================
 
 def calculate_risk():
 
-    statuses = get_all_statuses()
+    statuses = {}
 
-    risk_score = 0
+    for sensor, value in sensor_data.items():
+        statuses[sensor] = get_sensor_status(sensor, value)
 
+    # Critical conditions
+    if (
+        statuses["smoke"] == "DANGER"
+        or
+        statuses["vibration"] == "DANGER"
+        or
+        statuses["load"] == "DANGER"
+        or
+        statuses["displacement"] == "DANGER"
+    ):
+        return "CRITICAL", statuses
 
-    for status in statuses.values():
+    # Warning conditions
+    if "WARNING" in statuses.values():
+        return "WARNING", statuses
 
-        if status == "WARNING":
-
-            risk_score += 1
-
-        elif status == "HIGH":
-
-            risk_score += 3
-
-
-    if risk_score >= 6:
-
-        risk = "HIGH"
-
-    elif risk_score >= 2:
-
-        risk = "MEDIUM"
-
-    else:
-
-        risk = "LOW"
+    return "SAFE", statuses
 
 
-    return risk
-
-
-# =========================================================
-# CREATE SENSOR RESPONSE
-#
-# This is the main response sent to JavaScript.
-# =========================================================
-
-def get_sensor_response():
-
-    statuses = get_all_statuses()
-
-    risk = calculate_risk()
-
-
-    return {
-
-        "success": True,
-
-        "data": sensor_data.copy(),
-
-        "statuses": statuses,
-
-        "risk": risk,
-
-        "buzzer": buzzer_state,
-
-        "time": get_current_time()
-
-    }
-
-
-# =========================================================
+# ============================================================
 # HOME PAGE
-# =========================================================
+# ============================================================
 
-@app.route(
-    "/",
-    methods=["GET"]
-)
+@app.route("/")
 def home():
 
-    return send_from_directory(
-        FRONTEND_FOLDER,
-        "index.html"
-    )
+    try:
+        return send_from_directory(
+            app.static_folder,
+            "index.html"
+        )
+
+    except Exception:
+        return jsonify({
+            "success": True,
+            "message": "Mine Security AI backend is running"
+        })
 
 
-# =========================================================
-# FRONTEND FILES
-#
-# CSS / JS / images etc.
-# =========================================================
-
-@app.route(
-    "/<path:filename>"
-)
-def frontend_files(filename):
-
-    return send_from_directory(
-        FRONTEND_FOLDER,
-        filename
-    )
-
-
-# =========================================================
+# ============================================================
 # GET SENSOR DATA
-#
-# GET /api/sensors
-# =========================================================
+# ============================================================
 
-@app.route(
-    "/api/sensors",
-    methods=["GET"]
-)
+@app.route("/api/sensors", methods=["GET"])
 def get_sensors():
 
-    return jsonify(
-        get_sensor_response()
-    )
+    risk, statuses = calculate_risk()
+
+    return jsonify({
+        "success": True,
+        "data": sensor_data,
+        "statuses": statuses,
+        "risk": risk,
+        "buzzer": buzzer_state,
+        "time": datetime.now().isoformat()
+    })
 
 
-# =========================================================
-# UPDATE SENSOR DATA
-#
-# POST /api/sensors
-#
-# Example:
-#
-# {
-#     "soil": 65,
-#     "tilt": 2.3,
-#     "ultrasonic": 25,
-#     "smoke": 45,
-#     "vibration": 0.21,
-#     "load": 7.5,
-#     "displacement": 2.5
-# }
-# =========================================================
+# ============================================================
+# POST SENSOR DATA
+# ESP32 SENDS DATA HERE
+# ============================================================
 
-@app.route(
-    "/api/sensors",
-    methods=["POST"]
-)
+@app.route("/api/sensors", methods=["POST"])
 def update_sensors():
 
-    data = request.get_json(
-        silent=True
-    )
-
-
-    if not data:
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "No sensor data received"
-
-        }), 400
-
+    global buzzer_state
 
     try:
 
-        # -------------------------------------------------
-        # SOIL
-        # -------------------------------------------------
+        data = request.get_json()
 
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No JSON data received"
+            }), 400
+
+        # ----------------------------------------------------
+        # SENSOR ALIASES
+        # ----------------------------------------------------
+
+        # Soil
         if "soil" in data:
-
-            sensor_data["soil"] = float(
-                data["soil"]
-            )
-
-
-        # -------------------------------------------------
-        # SOIL ALIAS
-        # -------------------------------------------------
+            sensor_data["soil"] = float(data["soil"])
 
         elif "moisture" in data:
+            sensor_data["soil"] = float(data["moisture"])
 
-            sensor_data["soil"] = float(
-                data["moisture"]
-            )
-
-
-        # -------------------------------------------------
-        # TILT
-        # -------------------------------------------------
-
+        # Tilt
         if "tilt" in data:
+            sensor_data["tilt"] = float(data["tilt"])
 
-            sensor_data["tilt"] = float(
-                data["tilt"]
-            )
-
-
-        # -------------------------------------------------
-        # ULTRASONIC
-        # -------------------------------------------------
-
+        # Ultrasonic
         if "ultrasonic" in data:
-
-            sensor_data["ultrasonic"] = float(
-                data["ultrasonic"]
-            )
-
-
-        # -------------------------------------------------
-        # DISTANCE ALIAS
-        # -------------------------------------------------
+            sensor_data["ultrasonic"] = float(data["ultrasonic"])
 
         elif "distance" in data:
+            sensor_data["ultrasonic"] = float(data["distance"])
 
-            sensor_data["ultrasonic"] = float(
-                data["distance"]
-            )
-
-
-        # -------------------------------------------------
-        # SMOKE
-        # -------------------------------------------------
-
+        # MQ-4 gas
         if "smoke" in data:
+            sensor_data["smoke"] = float(data["smoke"])
 
-            sensor_data["smoke"] = float(
-                data["smoke"]
-            )
+        elif "gas" in data:
+            sensor_data["smoke"] = float(data["gas"])
 
-
-        # -------------------------------------------------
-        # VIBRATION
-        # -------------------------------------------------
-
+        # Vibration
         if "vibration" in data:
 
             sensor_data["vibration"] = float(
                 data["vibration"]
             )
 
+            # =================================================
+            # IMPORTANT:
+            # BUZZER ONLY FOR VIBRATION
+            # =================================================
 
-        # -------------------------------------------------
-        # LOAD
-        # -------------------------------------------------
+            if sensor_data["vibration"] >= 1:
+                buzzer_state = "ON"
+            else:
+                buzzer_state = "OFF"
 
+        # Load
         if "load" in data:
-
-            sensor_data["load"] = float(
-                data["load"]
-            )
-
-
-        # -------------------------------------------------
-        # WEIGHT ALIAS
-        # -------------------------------------------------
+            sensor_data["load"] = float(data["load"])
 
         elif "weight" in data:
+            sensor_data["load"] = float(data["weight"])
 
-            sensor_data["load"] = float(
-                data["weight"]
-            )
-
-
-        # -------------------------------------------------
-        # DISPLACEMENT
-        # -------------------------------------------------
-
+        # Ground displacement
         if "displacement" in data:
-
             sensor_data["displacement"] = float(
                 data["displacement"]
             )
 
-
-        # -------------------------------------------------
-        # GROUND DISPLACEMENT ALIAS
-        # -------------------------------------------------
-
         elif "ground_displacement" in data:
-
             sensor_data["displacement"] = float(
                 data["ground_displacement"]
             )
 
+        # ----------------------------------------------------
+        # CALCULATE RISK
+        # ----------------------------------------------------
 
-    except (
-        ValueError,
-        TypeError
-    ):
+        risk, statuses = calculate_risk()
 
         return jsonify({
+            "success": True,
+            "message": "Sensor data updated",
+            "data": sensor_data,
+            "statuses": statuses,
+            "risk": risk,
+            "buzzer": buzzer_state,
+            "time": datetime.now().isoformat()
+        })
 
+    except Exception as e:
+
+        return jsonify({
             "success": False,
-
-            "message":
-                "Sensor values must be numbers"
-
+            "message": str(e)
         }), 400
 
 
-    response = get_sensor_response()
-
-
-    response["message"] = (
-        "Sensor data updated successfully"
-    )
-
-
-    return jsonify(response)
-
-
-# =========================================================
+# ============================================================
 # SIMULATE SENSOR DATA
-#
-# Useful for testing the dashboard before hardware
-# is connected.
-#
-# GET /api/simulate
-# =========================================================
+# ============================================================
 
-@app.route(
-    "/api/simulate",
-    methods=["GET"]
-)
+@app.route("/api/simulate", methods=["POST"])
 def simulate():
-
-    sensor_data["soil"] = round(
-        random.uniform(
-            30.0,
-            90.0
-        ),
-        2
-    )
-
-
-    sensor_data["tilt"] = round(
-        random.uniform(
-            1.0,
-            3.5
-        ),
-        2
-    )
-
-
-    sensor_data["ultrasonic"] = round(
-        random.uniform(
-            10.0,
-            60.0
-        ),
-        2
-    )
-
-
-    sensor_data["smoke"] = round(
-        random.uniform(
-            10.0,
-            90.0
-        ),
-        2
-    )
-
-
-    sensor_data["vibration"] = round(
-        random.uniform(
-            0.10,
-            0.30
-        ),
-        2
-    )
-
-
-    sensor_data["load"] = round(
-        random.uniform(
-            3.0,
-            10.0
-        ),
-        2
-    )
-
-
-    sensor_data["displacement"] = round(
-        random.uniform(
-            1.0,
-            4.0
-        ),
-        2
-    )
-
-
-    response = get_sensor_response()
-
-
-    response["message"] = (
-        "Demo sensor data generated"
-    )
-
-
-    return jsonify(response)
-
-
-# =========================================================
-# RESET SENSOR DATA
-#
-# GET /api/reset
-# =========================================================
-
-@app.route(
-    "/api/reset",
-    methods=["GET"]
-)
-def reset_sensors():
 
     global buzzer_state
 
+    sensor_data["soil"] = round(
+        random.uniform(20, 90), 2
+    )
 
-    sensor_data["soil"] = 42.0
+    sensor_data["tilt"] = round(
+        random.uniform(0, 4), 2
+    )
 
-    sensor_data["tilt"] = 1.8
+    sensor_data["ultrasonic"] = round(
+        random.uniform(10, 70), 2
+    )
 
-    sensor_data["ultrasonic"] = 45.0
+    sensor_data["smoke"] = round(
+        random.uniform(0, 100), 2
+    )
 
+    sensor_data["vibration"] = round(
+        random.choice([0, 0.15, 0.30]), 2
+    )
+
+    sensor_data["load"] = round(
+        random.uniform(1, 11), 2
+    )
+
+    sensor_data["displacement"] = round(
+        random.uniform(0, 4), 2
+    )
+
+    # Buzzer only for vibration
+    if sensor_data["vibration"] >= 0.25:
+        buzzer_state = "ON"
+    else:
+        buzzer_state = "OFF"
+
+    risk, statuses = calculate_risk()
+
+    return jsonify({
+        "success": True,
+        "message": "Simulation data generated",
+        "data": sensor_data,
+        "statuses": statuses,
+        "risk": risk,
+        "buzzer": buzzer_state,
+        "time": datetime.now().isoformat()
+    })
+
+
+# ============================================================
+# RESET SENSOR DATA
+# ============================================================
+
+@app.route("/api/reset", methods=["POST"])
+def reset():
+
+    global buzzer_state
+
+    sensor_data["soil"] = 45.0
+    sensor_data["tilt"] = 1.2
+    sensor_data["ultrasonic"] = 50.0
     sensor_data["smoke"] = 20.0
-
-    sensor_data["vibration"] = 0.18
-
-    sensor_data["load"] = 5.0
-
-    sensor_data["displacement"] = 2.4
-
+    sensor_data["vibration"] = 0.0
+    sensor_data["load"] = 2.5
+    sensor_data["displacement"] = 0.5
 
     buzzer_state = "OFF"
 
-
-    response = get_sensor_response()
-
-
-    response["message"] = (
-        "Sensor data reset successfully"
-    )
-
-
-    return jsonify(response)
-
-
-# =========================================================
-# GET BUZZER STATE
-#
-# GET /api/buzzer
-# =========================================================
-
-@app.route(
-    "/api/buzzer",
-    methods=["GET"]
-)
-def get_buzzer():
+    risk, statuses = calculate_risk()
 
     return jsonify({
-
         "success": True,
-
+        "message": "Sensor data reset",
+        "data": sensor_data,
+        "statuses": statuses,
+        "risk": risk,
         "buzzer": buzzer_state,
-
-        "time": get_current_time()
-
+        "time": datetime.now().isoformat()
     })
 
 
-# =========================================================
-# CONTROL BUZZER
-#
-# POST /api/buzzer
-#
-# Request:
-#
-# {
-#     "state": "ON"
-# }
-#
-# OR
-#
-# {
-#     "state": "OFF"
-# }
-# =========================================================
+# ============================================================
+# BUZZER API
+# ============================================================
 
-@app.route(
-    "/api/buzzer",
-    methods=["POST"]
-)
-def control_buzzer():
+@app.route("/api/buzzer", methods=["GET", "POST"])
+def buzzer():
 
     global buzzer_state
 
-
-    data = request.get_json(
-        silent=True
-    )
-
-
-    if not data:
+    # GET
+    if request.method == "GET":
 
         return jsonify({
+            "success": True,
+            "buzzer": buzzer_state
+        })
 
+    # POST
+    try:
+
+        data = request.get_json()
+
+        if data and "state" in data:
+
+            requested_state = str(
+                data["state"]
+            ).upper()
+
+            if requested_state in ["ON", "OFF"]:
+                buzzer_state = requested_state
+
+        return jsonify({
+            "success": True,
+            "buzzer": buzzer_state
+        })
+
+    except Exception as e:
+
+        return jsonify({
             "success": False,
-
-            "message":
-                "No buzzer command received"
-
+            "message": str(e)
         }), 400
 
 
-    state = data.get(
-        "state"
-    )
-
-
-    if state is None:
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "Buzzer state is required"
-
-        }), 400
-
-
-    state = str(
-        state
-    ).upper()
-
-
-    if state not in [
-        "ON",
-        "OFF"
-    ]:
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "Buzzer state must be ON or OFF"
-
-        }), 400
-
-
-    buzzer_state = state
-
-
-    return jsonify({
-
-        "success": True,
-
-        "message":
-            f"Buzzer turned {buzzer_state}",
-
-        "buzzer":
-            buzzer_state,
-
-        "time":
-            get_current_time()
-
-    })
-
-
-# =========================================================
+# ============================================================
 # HEALTH CHECK
-#
-# GET /api/health
-# =========================================================
+# ============================================================
 
-@app.route(
-    "/api/health",
-    methods=["GET"]
-)
+@app.route("/api/health", methods=["GET"])
 def health():
 
     return jsonify({
-
         "success": True,
-
-        "server":
-            "Mine Security AI Backend",
-
-        "status":
-            "running",
-
-        "time":
-            get_current_time()
-
+        "status": "online",
+        "message": "Mine Security AI backend is running",
+        "time": datetime.now().isoformat()
     })
 
 
-# =========================================================
-# START SERVER
-# =========================================================
+# ============================================================
+# RUN SERVER
+# ============================================================
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
 
-    print("--------------------------------------------")
-    print(" Mine Security AI Backend")
-    print(" AI Mine Subsidence Monitoring System")
-    print("--------------------------------------------")
-    print(f"Server running on port: {port}")
-    print("--------------------------------------------")
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
         host="0.0.0.0",
